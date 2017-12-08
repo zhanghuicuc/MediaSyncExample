@@ -1,7 +1,6 @@
 package com.example.zhanghui.mediasyncexample;
 
 import android.content.Context;
-import android.content.res.Resources;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
@@ -34,12 +33,6 @@ public class MediaSyncTest{
     private final long NO_TIMESTAMP = -1;
     private final float FLOAT_PLAYBACK_RATE_TOLERANCE = .02f;
     private final long TIME_MEASUREMENT_TOLERANCE_US = 20000;
-    private final Uri INPUT_RESOURCE_ID =
-            //Uri.parse("/sdcard/Sync-One2-Test-1080p-24-H_264_V.mp4");
-            //Uri.parse("/sdcard/DesigningForGoogleCast.mp4");
-            //Uri.parse("/sdcard/wedding-1080p.mp4");
-            //Uri.parse("/sdcard/H264_AAC_24fps_1920x1080.ts");  // H.264 Base + AAC
-            Uri.parse("/sdcard/video_480x360_mp4_h264_1350kbps_30fps_aac_stereo_192kbps_44100hz.mp4");
     private final int APPLICATION_AUDIO_PERIOD_MS = 200;
     private final int TEST_MAX_SPEED = 2;
     private Context mContext;
@@ -66,6 +59,9 @@ public class MediaSyncTest{
 
     public void tearDown() throws Exception {
         if (mMediaSync != null) {
+            onEos(mDecoderAudio);
+            onEos(mDecoderVideo);
+            mMediaSync.flush();
             mMediaSync.release();
             mMediaSync = null;
         }
@@ -80,9 +76,6 @@ public class MediaSyncTest{
         if (mSurface != null) {
             mSurface.release();
             mSurface = null;
-        }
-        if (mSurfaceHolder.getSurface() != null) {
-            mSurfaceHolder.getSurface().release();
         }
     }
 
@@ -111,8 +104,8 @@ public class MediaSyncTest{
     /**
      * Tests playing back audio and video successfully.
      */
-    public void testPlayAudioAndVideo() throws InterruptedException {
-        playAV(INPUT_RESOURCE_ID, 5*60*1000 /* lastBufferTimestampMs */,
+    public void testPlayAudioAndVideo(Uri fileUri) throws InterruptedException {
+        playAV(fileUri, 5*60*1000 /* lastBufferTimestampMs */,
                true /* audio */, true /* video */, 10*60*1000 /* timeOutMs */);
     }
 
@@ -258,7 +251,7 @@ public class MediaSyncTest{
                 // sync.getTolerance() is MediaSync's tolerance of the playback rate, whereas
                 // FLOAT_PLAYBACK_RATE_TOLERANCE is our test's tolerance.
                 // We need to add both to get an upperbound for allowable error.
-                Log.d(LOG_TAG, "Mediasync had error in playback rate " + playbackRate
+                Log.d(LOG_TAG, "Mediasync may have error in playback rate " + playbackRate
                         + ", play time is " + playTimeUs + " vs expected " + mediaDurationUs);
                 return true;
             }

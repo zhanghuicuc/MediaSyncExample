@@ -2,12 +2,12 @@ package com.example.zhanghui.mediasyncexample;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-import android.view.View;
-import android.view.ViewStub;
 import android.view.Window;
 import android.view.WindowManager;
 
@@ -17,6 +17,7 @@ public class PlayerActivity extends Activity implements SurfaceHolder.Callback{
     private SurfaceView mSurfaceV;
     private SurfaceHolder mSurfaceHolder;
     private MediaSyncTest mMediaSyncTest;
+    private Uri mFileUrl;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -24,9 +25,15 @@ public class PlayerActivity extends Activity implements SurfaceHolder.Callback{
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_player);
-
         mSurfaceV = (SurfaceView) findViewById(R.id.surfaceView);
         mSurfaceV.getHolder().addCallback(this);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Intent intent = getIntent();
+        mFileUrl = intent.getData();
         Intent i = new Intent("com.android.music.musicservicecommand");
         i.putExtra("command", "pause");
         this.sendBroadcast(i);
@@ -62,7 +69,7 @@ public class PlayerActivity extends Activity implements SurfaceHolder.Callback{
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
         this.mSurfaceHolder = holder;
-        //mSurfaceHolder.setKeepScreenOn(true);
+        this.mSurfaceHolder.setKeepScreenOn(true);
         new DecodeTask().execute();
     }
 
@@ -77,26 +84,22 @@ public class PlayerActivity extends Activity implements SurfaceHolder.Callback{
         if (mMediaSyncTest != null) {
             try {
                 mMediaSyncTest.tearDown();
-                if (mSurfaceV != null) {
-                    this.mSurfaceHolder.getSurface().release();
-                    mSurfaceV = null;
-                }
                 mMediaSyncTest = null;
             }catch (Exception e){}
         }
     }
 
-    public class DecodeTask extends AsyncTask<String, Integer, String> {
+    public class DecodeTask extends AsyncTask<Void, Void, Boolean> {
 
         @Override
-        protected String doInBackground(String... url) {
+        protected Boolean doInBackground(Void... params) {
             //this runs on a new thread
             initializePlayer();
-            return "null";
+            return true;
         }
 
         @Override
-        protected void onPostExecute(String s) {
+        protected void onPostExecute(Boolean result) {
             //this runs on ui thread
         }
     }
@@ -105,7 +108,7 @@ public class PlayerActivity extends Activity implements SurfaceHolder.Callback{
         mMediaSyncTest = new MediaSyncTest(mSurfaceHolder);
         if (mMediaSyncTest != null) {
             try {
-                mMediaSyncTest.testPlayAudioAndVideo();
+                mMediaSyncTest.testPlayAudioAndVideo(mFileUrl);
             } catch (InterruptedException e){}
         }
     }

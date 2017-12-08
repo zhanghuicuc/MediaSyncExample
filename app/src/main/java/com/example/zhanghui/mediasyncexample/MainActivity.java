@@ -1,7 +1,14 @@
+/**
+ * this sample shows how to use android MediaSync API
+ * Author:
+ * zhang hui <zhanghui9@le.com;zhanghuicuc@gmail.com>
+ * LeEco BSP Multimedia / Communication University of China
+ */
 package com.example.zhanghui.mediasyncexample;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -12,6 +19,7 @@ public class MainActivity extends Activity {
 
     private Button mPlayButton;
     private EditText mUrlEditText;
+    private static final String DEFAULT_FILE_URL = "/sdcard/Sync-One2-Test-1080p-24-H_264_V.mp4";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -22,11 +30,12 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View v) {
                 String fileUrl = mUrlEditText.getText().toString().trim();
-                fileUrl = "/sdcard/H264_EAC3_24fps_1920x1080.mp4";
-                if (fileUrl == null) {
-                    Toast.makeText(MainActivity.this, "file url wrong", Toast.LENGTH_SHORT).show();
+                if (fileUrl.equals("")) {
+                    Toast.makeText(MainActivity.this, "file url is null, will use default url", Toast.LENGTH_SHORT).show();
+                    Intent intent = new Intent(MainActivity.this, PlayerActivity.class).setData(Uri.parse(DEFAULT_FILE_URL));
+                    startActivity(intent);
                 } else {
-                    Intent intent = new Intent(getApplicationContext(), PlayerActivity.class);
+                    Intent intent = new Intent(MainActivity.this, PlayerActivity.class).setData(Uri.parse(fileUrl));
                     startActivity(intent);
                 }
             }
